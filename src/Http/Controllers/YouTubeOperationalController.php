@@ -116,6 +116,13 @@ class YouTubeOperationalController extends Controller
             $data = $callback();
         } catch (ApiException $e) {
             return response()->json($e->toArray(), $e->apiCode(), [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => [
+                    'code' => 500,
+                    'message' => $e->getMessage(),
+                ],
+            ], 500, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }
 
         return response()->json($data, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

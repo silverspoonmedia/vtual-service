@@ -6,6 +6,7 @@ use Silverspoonmedia\VtualService\Exceptions\ApiException;
 use Silverspoonmedia\VtualService\Support\Json;
 use Silverspoonmedia\VtualService\Support\Parsers;
 use Silverspoonmedia\VtualService\Support\Validators;
+use Silverspoonmedia\VtualService\Support\WatchPage;
 
 /** Ported from upstream `videos.php`. */
 class VideosEndpoint extends Endpoint
@@ -65,6 +66,46 @@ class VideosEndpoint extends Endpoint
     /** @param array<string, bool> $options @param array<string, mixed> $params @return array<string, mixed> */
     protected function item(string $id, array $options, array $params, bool $isClip): array
     {
+        $needsWatchJson = ! $isClip && (
+            $options['musics'] || $options['isPremium'] || $options['isMemberOnly'] || $options['mostReplayed']
+            || $options['location'] || $options['chapters'] || $options['explicitLyrics'] || $options['snippet']
+            || $options['statistics'] || $options['activity']
+        );
+        $needsWatchJsonForceLang = ! $isClip && (
+            $options['musics'] || $options['mostReplayed'] || $options['snippet'] || $options['statistics'] || $options['activity']
+        );
+        $needsPlayerJson = ! $isClip && (
+            $options['isPaidPromotion'] || $options['qualities'] || $options['captions'] || $options['isRestricted']
+        );
+
+        $watchJson = null;
+        $playerResponse = null;
+
+        $loadWatchJson = function (bool $forceLanguage = false) use (&$watchJson, $id, $needsWatchJson, $needsWatchJsonForceLang): ?array {
+            if (! $needsWatchJson) {
+                return null;
+            }
+            if ($watchJson === null) {
+                $opts = $forceLanguage || $needsWatchJsonForceLang
+                    ? ['http' => ['header' => ['Accept-Language: en']]]
+                    : [];
+                $watchJson = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", $opts);
+            }
+
+            return $watchJson;
+        };
+
+        $loadPlayerResponse = function () use (&$playerResponse, $id, $needsPlayerJson): ?array {
+            if (! $needsPlayerJson) {
+                return null;
+            }
+            if ($playerResponse === null) {
+                $playerResponse = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", scriptVariable: 'ytInitialPlayerResponse');
+            }
+
+            return $playerResponse;
+        };
+
         $result = null;
         if ($options['status'] || $options['contentDetails']) {
             $result = $this->playerJson(json_encode([
@@ -112,12 +153,15 @@ class VideosEndpoint extends Endpoint
         }
 
         if ($options['musics']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", ['http' => ['header' => ['Accept-Language: en']]]);
+            $json = $loadWatchJson(true);
             $musics = [];
             $engagementPanel = Json::firstNodeContainingPath($json['engagementPanels'] ?? [], 'engagementPanelSectionListRenderer/content/structuredDescriptionContentRenderer/items');
             $cards = Json::value($engagementPanel, 'engagementPanelSectionListRenderer/content/structuredDescriptionContentRenderer/items', null, []);
-            $structured = Json::firstNodeContainingPath($cards, 'horizontalCardListRenderer/cards');
+            $structured = Json::firstNodeContainingPath(is_array($cards) ? $cards : [], 'horizontalCardListRenderer/cards');
             foreach (Json::value($structured, 'horizontalCardListRenderer/cards', null, []) as $card) {
+                if (! isset($card['videoAttributeViewModel'])) {
+                    continue;
+                }
                 $vm = $card['videoAttributeViewModel'];
                 $music = ['image' => $vm['image']['sources'][0]['url'], 'videoId' => $vm['onTap']['innertubeCommand']['watchEndpoint']['videoId']];
                 $runs = $vm['overflowMenuOnTap']['innertubeCommand']['confirmDialogEndpoint']['content']['confirmDialogRenderer']['dialogMessages'][0]['runs'];
@@ -155,22 +199,22 @@ class VideosEndpoint extends Endpoint
         }
 
         if ($options['isPaidPromotion']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", scriptVariable: 'ytInitialPlayerResponse');
+            $json = $loadPlayerResponse();
             $item['isPaidPromotion'] = array_key_exists('paidContentOverlay', $json ?? []);
         }
 
         if ($options['isPremium']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id");
-            $item['isPremium'] = array_key_exists('offerModule', $json['contents']['twoColumnWatchNextResults']['secondaryResults']['secondaryResults'] ?? []);
+            $json = $loadWatchJson();
+            $item['isPremium'] = WatchPage::isPremium($json);
         }
 
         if ($options['isMemberOnly']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id");
-            $item['isMemberOnly'] = array_key_exists('badges', $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'][0]['videoPrimaryInfoRenderer'] ?? []);
+            $json = $loadWatchJson();
+            $item['isMemberOnly'] = WatchPage::isMemberOnly($json);
         }
 
         if ($options['mostReplayed']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", forceLanguage: true);
+            $json = $loadWatchJson(true);
             $mostReplayed = null;
             foreach (($json['frameworkUpdates']['entityBatchUpdate']['mutations'] ?? []) as $mutation) {
                 if (Json::pathExists($mutation, 'payload/macroMarkersListEntity/markersList/markersDecoration')) {
@@ -196,7 +240,7 @@ class VideosEndpoint extends Endpoint
         }
 
         if ($options['qualities']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", scriptVariable: 'ytInitialPlayerResponse');
+            $json = $loadPlayerResponse();
             $qualities = [];
             foreach (($json['streamingData']['adaptiveFormats'] ?? []) as $quality) {
                 if (array_key_exists('qualityLabel', $quality) && ! in_array($quality['qualityLabel'], $qualities, true)) {
@@ -216,12 +260,12 @@ class VideosEndpoint extends Endpoint
         }
 
         if ($options['location']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id");
-            $item['location'] = $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'][0]['videoPrimaryInfoRenderer']['superTitleLink']['runs'][0]['text'];
+            $json = $loadWatchJson();
+            $item['location'] = WatchPage::location($json);
         }
 
         if ($options['chapters']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id");
+            $json = $loadWatchJson();
             $chapters = [];
             $auto = false;
             foreach (($json['engagementPanels'] ?? []) as $panel) {
@@ -251,34 +295,29 @@ class VideosEndpoint extends Endpoint
         }
 
         if ($options['snippet']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", forceLanguage: true);
-            $contents = $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'];
-            $item['snippet'] = [
-                'publishedAt' => strtotime($contents[0]['videoPrimaryInfoRenderer']['dateText']['simpleText']),
-                'description' => $contents[1]['videoSecondaryInfoRenderer']['attributedDescription']['content'],
-                'title' => $contents[0]['videoPrimaryInfoRenderer']['title']['runs'][0]['text'],
-            ];
+            $json = $loadWatchJson(true);
+            $snippet = WatchPage::snippet($json);
+            if ($snippet !== null) {
+                $item['snippet'] = $snippet;
+            }
         }
 
         if ($options['statistics']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", forceLanguage: true);
-            preg_match('/like this video along with ([\d,]+) other people/', $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'][0]['videoPrimaryInfoRenderer']['videoActions']['menuRenderer']['topLevelButtons'][0]['segmentedLikeDislikeButtonViewModel']['likeButtonViewModel']['likeButtonViewModel']['toggleButtonViewModel']['toggleButtonViewModel']['defaultButtonViewModel']['buttonViewModel']['accessibilityText'] ?? '', $viewCount);
-            $item['statistics'] = [
-                'viewCount' => Parsers::intValue($json['playerOverlays']['playerOverlayRenderer']['videoDetails']['playerOverlayVideoDetailsRenderer']['subtitle']['runs'][2]['text'] ?? '0', 'view'),
-                'likeCount' => Parsers::intValue($viewCount[1] ?? '0'),
-            ];
+            $json = $loadWatchJson(true);
+            $statistics = WatchPage::statistics($json);
+            if ($statistics !== null) {
+                $item['statistics'] = $statistics;
+            }
         }
 
         if ($options['activity']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id", forceLanguage: true);
-            $activity = $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'][1]['videoSecondaryInfoRenderer']['metadataRowContainer']['metadataRowContainerRenderer']['rows'][0]['richMetadataRowRenderer']['contents'][0]['richMetadataRenderer'];
-            $item['activity'] = ['name' => $activity['title']['simpleText'], 'year' => $activity['subtitle']['simpleText'], 'thumbnails' => $activity['thumbnail']['thumbnails'], 'channelId' => $activity['endpoint']['browseEndpoint']['browseId']];
+            $json = $loadWatchJson(true);
+            $item['activity'] = WatchPage::activity($json);
         }
 
         if ($options['explicitLyrics']) {
-            $json = $this->client->getJsonFromHtml("https://www.youtube.com/watch?v=$id");
-            $rows = $json['contents']['twoColumnWatchNextResults']['results']['results']['contents'][1]['videoSecondaryInfoRenderer']['metadataRowContainer']['metadataRowContainerRenderer']['rows'] ?? null;
-            $item['explicitLyrics'] = $rows !== null && (end($rows)['metadataRowRenderer']['contents'][0]['simpleText'] ?? null) === 'Explicit lyrics';
+            $json = $loadWatchJson();
+            $item['explicitLyrics'] = WatchPage::explicitLyrics($json);
         }
 
         return $item;
