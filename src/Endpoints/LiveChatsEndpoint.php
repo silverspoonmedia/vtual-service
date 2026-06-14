@@ -52,7 +52,7 @@ class LiveChatsEndpoint extends Endpoint
             'currentPlayerState' => ['playerOffsetMs' => $time],
         ];
         $opts = ['http' => ['header' => ['Content-Type: application/json'], 'method' => 'POST', 'content' => json_encode($rawData)]];
-        $replay = $this->client->getJson('https://www.youtube.com/youtubei/v1/live_chat/get_live_chat_replay?key=' . $this->config->uiKey(), $opts);
+        $replay = $this->client->getJson('https://www.youtube.com/youtubei/v1/live_chat/get_live_chat_replay?key='.$this->config->uiKey(), $opts);
 
         $item = ['kind' => 'youtube#video', 'etag' => 'NotImplemented', 'id' => $id];
 
@@ -78,7 +78,7 @@ class LiveChatsEndpoint extends Endpoint
         }
 
         if ($options['participants']) {
-            $opts = ['http' => ['header' => ['User-Agent: ' . $this->config->userAgent()]]];
+            $opts = ['http' => ['header' => ['User-Agent: '.$this->config->userAgent()]]];
             $liveChat = $this->client->getJsonFromHtml("https://www.youtube.com/live_chat?continuation=$continuation", $opts, 'window["ytInitialData"]', '');
             $item['participants'] = array_slice($liveChat['continuationContents']['liveChatContinuation']['actions'] ?? [], 1);
         }

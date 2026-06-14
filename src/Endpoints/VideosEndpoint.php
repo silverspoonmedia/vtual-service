@@ -59,7 +59,7 @@ class VideosEndpoint extends Endpoint
         }
         $opts = ['http' => ['method' => 'POST', 'header' => $headers, 'content' => $rawData]];
 
-        return $this->client->getJson('https://' . ($music ? 'music' : 'www') . '.youtube.com/youtubei/v1/player?key=' . $this->config->uiKey(), $opts);
+        return $this->client->getJson('https://'.($music ? 'music' : 'www').'.youtube.com/youtubei/v1/player?key='.$this->config->uiKey(), $opts);
     }
 
     /** @param array<string, bool> $options @param array<string, mixed> $params @return array<string, mixed> */
@@ -101,13 +101,13 @@ class VideosEndpoint extends Endpoint
         if ($options['impressions']) {
             $headers = [
                 'x-origin: https://studio.youtube.com',
-                'authorization: SAPISIDHASH ' . $params['SAPISIDHASH'],
+                'authorization: SAPISIDHASH '.$params['SAPISIDHASH'],
                 'Content-Type:',
                 'Cookie: HSID=A4BqSu4moNA0Be1N9; SSID=AA0tycmNyGWo-Z_5v; APISID=a; SAPISID=zRbK-_14V7wIAieP/Ab_wY1sjLVrKQUM2c; SID=HwhYm6rJKOn_3R9oOrTNDJjpHIiq9Uos0F5fv4LPdMRSqyVHA1EDZwbLXo0kuUYAIN_MUQ.',
             ];
             $rawData = ['screenConfig' => ['entity' => ['videoId' => $id]], 'desktopState' => ['tabId' => 'ANALYTICS_TAB_ID_REACH']];
             $opts = ['http' => ['method' => 'POST', 'header' => $headers, 'content' => json_encode($rawData)]];
-            $json = $this->client->getJson('https://studio.youtube.com/youtubei/v1/analytics_data/get_screen?key=' . $this->config->uiKey(), $opts);
+            $json = $this->client->getJson('https://studio.youtube.com/youtubei/v1/analytics_data/get_screen?key='.$this->config->uiKey(), $opts);
             $item['impressions'] = $json['cards'][0]['keyMetricCardData']['keyMetricTabs'][0]['primaryContent']['total'];
         }
 
@@ -242,7 +242,7 @@ class VideosEndpoint extends Endpoint
 
         if ($options['isOriginal']) {
             $html = $this->client->getRemote("https://www.youtube.com/watch?v=$id");
-            $item['isOriginal'] = str_contains($html, 'xtags=' . urlencode('acont=original'));
+            $item['isOriginal'] = str_contains($html, 'xtags='.urlencode('acont=original'));
         }
 
         if ($options['isRestricted']) {

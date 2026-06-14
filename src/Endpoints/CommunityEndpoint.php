@@ -41,7 +41,7 @@ class CommunityEndpoint extends Endpoint
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return array<string, mixed>
      */
     protected function getApi(string $postId, string $channelId, string $order, array $params): array
@@ -55,7 +55,7 @@ class CommunityEndpoint extends Endpoint
 
         $currentTime = time();
         $origin = 'https://www.youtube.com';
-        $sapisidHash = "{$currentTime}_" . sha1("$currentTime $sapisid $origin");
+        $sapisidHash = "{$currentTime}_".sha1("$currentTime $sapisid $origin");
 
         $rawData = [
             'context' => ['client' => ['clientName' => 'WEB', 'clientVersion' => $this->config->musicVersion()]],
@@ -67,7 +67,7 @@ class CommunityEndpoint extends Endpoint
             'Content-Type: application/json',
             "Origin: $origin",
             "Authorization: SAPISIDHASH $sapisidHash",
-            'Cookie: __Secure-3PSID=' . $secure3psid . '; __Secure-3PAPISID=' . $sapisid,
+            'Cookie: __Secure-3PSID='.$secure3psid.'; __Secure-3PAPISID='.$sapisid,
         ];
 
         $result = $this->client->postInnertube('https://www.youtube.com/youtubei/v1/browse', $rawData, $headers);

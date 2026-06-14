@@ -72,7 +72,7 @@ final class OutboundProxy
 
     public function streamTcpUri(): string
     {
-        return 'tcp://' . $this->address . ':' . $this->port;
+        return 'tcp://'.$this->address.':'.$this->port;
     }
 
     public function proxyAuthorizationHeader(): ?string
@@ -81,7 +81,7 @@ final class OutboundProxy
             return null;
         }
 
-        return 'Proxy-Authorization: Basic ' . base64_encode($this->username . ':' . $this->password);
+        return 'Proxy-Authorization: Basic '.base64_encode($this->username.':'.$this->password);
     }
 
     /**

@@ -3,8 +3,6 @@
 namespace Silverspoonmedia\VtualService;
 
 use Illuminate\Support\Facades\Config as LaravelConfig;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Silverspoonmedia\VtualService\Endpoints\ChannelsEndpoint;
 use Silverspoonmedia\VtualService\Endpoints\CommentThreadsEndpoint;
 use Silverspoonmedia\VtualService\Endpoints\CommunityEndpoint;
@@ -17,6 +15,8 @@ use Silverspoonmedia\VtualService\Endpoints\VideosEndpoint;
 use Silverspoonmedia\VtualService\Http\YouTubeClient;
 use Silverspoonmedia\VtualService\Services\ApiKeyService;
 use Silverspoonmedia\VtualService\Support\Config;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class VtualServiceServiceProvider extends PackageServiceProvider
 {
@@ -77,6 +77,6 @@ class VtualServiceServiceProvider extends PackageServiceProvider
             return;
         }
 
-        $this->loadRoutesFrom(__DIR__ . '/../routes/youtube.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/youtube.php');
     }
 }

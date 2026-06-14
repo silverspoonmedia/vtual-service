@@ -22,7 +22,7 @@ final class CurlTransport
         if (! extension_loaded('curl')) {
             throw new RuntimeException(
                 'The PHP curl extension is required for SOCKS5, SOCKS5h, and Tor proxies. '
-                . 'Install ext-curl or switch VTUAL_PROXY_TYPE to http.'
+                .'Install ext-curl or switch VTUAL_PROXY_TYPE to http.'
             );
         }
 
@@ -57,14 +57,14 @@ final class CurlTransport
 
         if ($proxy->enabled) {
             if ($proxy->type === OutboundProxy::TYPE_HTTP) {
-                $curlOpts[CURLOPT_PROXY] = $proxy->address . ':' . $proxy->port;
+                $curlOpts[CURLOPT_PROXY] = $proxy->address.':'.$proxy->port;
                 $curlOpts[CURLOPT_HTTPPROXYTUNNEL] = true;
             } else {
                 $curlOpts[CURLOPT_PROXY] = $proxy->curlProxyUrl();
             }
 
             if ($proxy->username !== '') {
-                $curlOpts[CURLOPT_PROXYUSERPWD] = $proxy->username . ':' . $proxy->password;
+                $curlOpts[CURLOPT_PROXYUSERPWD] = $proxy->username.':'.$proxy->password;
             }
         }
 

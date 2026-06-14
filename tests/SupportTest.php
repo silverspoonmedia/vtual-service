@@ -17,7 +17,7 @@ describe('Validators', function () {
     });
 
     it('validates youtube data api keys', function () {
-        expect(Validators::isYouTubeDataApiV3Key('AIzaSyA' . str_repeat('x', 32)))->toBeTrue();
+        expect(Validators::isYouTubeDataApiV3Key('AIzaSyA'.str_repeat('x', 32)))->toBeTrue();
         expect(Validators::isYouTubeDataApiV3Key('not-a-key'))->toBeFalse();
     });
 });

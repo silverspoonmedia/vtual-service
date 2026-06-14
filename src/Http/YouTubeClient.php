@@ -2,8 +2,10 @@
 
 namespace Silverspoonmedia\VtualService\Http;
 
+use Silverspoonmedia\VtualService\Exceptions\TorEgressException;
 use Silverspoonmedia\VtualService\Exceptions\UnusualTrafficException;
 use Silverspoonmedia\VtualService\Support\Config;
+use Silverspoonmedia\VtualService\Support\Json;
 use Silverspoonmedia\VtualService\Support\OutboundProxy;
 use Silverspoonmedia\VtualService\Support\TorEgressVerifier;
 
@@ -48,7 +50,7 @@ class YouTubeClient
             }
         }
 
-        $headers[] = 'User-Agent: ' . $userAgent;
+        $headers[] = 'User-Agent: '.$userAgent;
         $opts['http']['header'] = $headers;
 
         return $opts;
@@ -57,7 +59,7 @@ class YouTubeClient
     /**
      * When Tor preset is active, verify egress IP before any outbound request.
      *
-     * @throws \Silverspoonmedia\VtualService\Exceptions\TorEgressException
+     * @throws TorEgressException
      */
     protected function ensureTorEgress(): void
     {
@@ -77,7 +79,7 @@ class YouTubeClient
     {
         $exemption = $this->config->googleAbuseExemption();
         if ($exemption !== '') {
-            $cookieToAdd = 'GOOGLE_ABUSE_EXEMPTION=' . $exemption;
+            $cookieToAdd = 'GOOGLE_ABUSE_EXEMPTION='.$exemption;
             if (array_key_exists('http', $opts) && array_key_exists('header', $opts['http'])) {
                 $headers = $opts['http']['header'];
                 $found = false;
@@ -167,7 +169,7 @@ class YouTubeClient
         $code = (int) (explode(' ', $statusLine)[1] ?? 0);
 
         if (in_array($code, $this->config->unusualTrafficHttpCodes(), true)) {
-            throw new UnusualTrafficException();
+            throw new UnusualTrafficException;
         }
 
         return $code === 303;
@@ -183,7 +185,7 @@ class YouTubeClient
 
         foreach ($this->config->unusualTrafficHttpCodes() as $code) {
             if (str_contains($statusLine, (string) $code) && ($code !== 403 || $verifyTrafficIfForbidden)) {
-                throw new UnusualTrafficException();
+                throw new UnusualTrafficException;
             }
         }
 
@@ -227,7 +229,7 @@ class YouTubeClient
     ): ?array {
         if ($forceLanguage) {
             $header = 'Accept-Language: en';
-            if (! \Silverspoonmedia\VtualService\Support\Json::pathExists($opts, 'http/header')) {
+            if (! Json::pathExists($opts, 'http/header')) {
                 $opts['http']['header'] = [$header];
             } else {
                 $opts['http']['header'][] = $header;
@@ -240,8 +242,8 @@ class YouTubeClient
 
         if ($verifiesChannelRedirection) {
             $redirectedPath = 'onResponseReceivedActions/0/navigateAction/endpoint/browseEndpoint/browseId';
-            if (\Silverspoonmedia\VtualService\Support\Json::pathExists($json, $redirectedPath)) {
-                $redirectedId = \Silverspoonmedia\VtualService\Support\Json::value($json, $redirectedPath);
+            if (Json::pathExists($json, $redirectedPath)) {
+                $redirectedId = Json::value($json, $redirectedPath);
                 $url = preg_replace('/[\w\-_]{24}/', $redirectedId, $url);
 
                 return $this->getJsonFromHtml($url, $opts, $scriptVariable, $prefix, $forceLanguage, $verifiesChannelRedirection);
@@ -280,7 +282,7 @@ class YouTubeClient
             ],
         ];
 
-        return $this->getJson('https://www.youtube.com/youtubei/v1/browse?key=' . $this->config->uiKey(), $opts);
+        return $this->getJson('https://www.youtube.com/youtubei/v1/browse?key='.$this->config->uiKey(), $opts);
     }
 
     /**
@@ -331,4 +333,3 @@ class YouTubeClient
         return $this->config->clientVersion();
     }
 }
-

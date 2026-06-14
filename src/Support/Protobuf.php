@@ -79,8 +79,8 @@ class Protobuf
      */
     public static function communityParams(string $postId): string
     {
-        $subBrowse = (new self())->bytes(22, $postId);
-        $browse = (new self())
+        $subBrowse = (new self)->bytes(22, $postId);
+        $browse = (new self)
             ->bytes(2, 'community')
             ->message(25, $subBrowse);
 
@@ -96,19 +96,19 @@ class Protobuf
     public static function shortsSearchContinuation(string $query): string
     {
         // Sub1 -> Sub2(18) -> Sub3(7: Sub4_7(12=26), 9: Sub4_9{})
-        $sub4_7 = (new self())->varint(12, 26);
-        $sub4_9 = new self();
-        $sub3 = (new self())
+        $sub4_7 = (new self)->varint(12, 26);
+        $sub4_9 = new self;
+        $sub3 = (new self)
             ->message(7, $sub4_7)
             ->message(9, $sub4_9);
-        $sub2 = (new self())->message(18, $sub3);
-        $sub1 = (new self())->message(2, $sub2);
+        $sub2 = (new self)->message(18, $sub3);
+        $sub1 = (new self)->message(2, $sub2);
 
-        $sub0 = (new self())
+        $sub0 = (new self)
             ->bytes(2, $query)
             ->bytes(3, base64_encode($sub1->toString()));
 
-        $browseShorts = (new self())
+        $browseShorts = (new self)
             ->message(2, $sub0)
             ->varint(3, 52047873)
             ->bytes(4, 'search-page');

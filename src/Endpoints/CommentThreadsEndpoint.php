@@ -64,7 +64,7 @@ class CommentThreadsEndpoint extends Endpoint
                 'continuation' => $continuationToken,
             ];
             $endpoint = $videoId !== null ? 'next' : 'browse';
-            $result = $this->client->postInnertube("https://www.youtube.com/youtubei/v1/$endpoint?key=" . $this->config->uiKey(), $rawData);
+            $result = $this->client->postInnertube("https://www.youtube.com/youtubei/v1/$endpoint?key=".$this->config->uiKey(), $rawData);
 
             if ($order === 'time' && $simulatedContinuation) {
                 $continuationToken = $result['onResponseReceivedEndpoints'][0]['reloadContinuationItemsCommand']['continuationItems'][0]['commentsHeaderRenderer']['sortMenu']['sortFilterSubMenuRenderer']['subMenuItems'][1]['serviceEndpoint']['continuationCommand']['token'];

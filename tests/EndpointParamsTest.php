@@ -39,7 +39,7 @@ final class EndpointParamsProbe extends Endpoint
 
 describe('Endpoint list parameters', function () {
     it('accepts part as an array of strings', function () {
-        $probe = new EndpointParamsProbe();
+        $probe = new EndpointParamsProbe;
 
         $options = $probe->parts(['snippet', 'statistics'], ['snippet', 'statistics', 'contentDetails']);
 
@@ -51,7 +51,7 @@ describe('Endpoint list parameters', function () {
     });
 
     it('still accepts comma-separated strings for http compatibility', function () {
-        $probe = new EndpointParamsProbe();
+        $probe = new EndpointParamsProbe;
 
         expect($probe->parts('snippet,statistics', ['snippet', 'statistics']))->toBe([
             'snippet' => true,
@@ -62,7 +62,7 @@ describe('Endpoint list parameters', function () {
     });
 
     it('accepts id as an array of strings', function () {
-        $probe = new EndpointParamsProbe();
+        $probe = new EndpointParamsProbe;
 
         expect($probe->ids([
             'dQw4w9WgXcQ',
@@ -76,7 +76,7 @@ describe('Endpoint list parameters', function () {
     });
 
     it('flattens comma-separated values inside array elements', function () {
-        $probe = new EndpointParamsProbe();
+        $probe = new EndpointParamsProbe;
 
         expect($probe->ids(['dQw4w9WgXcQ,9bZkp7q19f0', 'jNQXAC9IVRw']))->toBe([
             'dQw4w9WgXcQ',

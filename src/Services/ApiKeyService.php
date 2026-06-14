@@ -49,11 +49,11 @@ class ApiKeyService
 
         if ($titleOk || $forceOk) {
             $this->ensureKeysDirectory($keysFile);
-            file_put_contents($keysFile, ($keysContent === '' ? '' : "\n") . $key, FILE_APPEND);
+            file_put_contents($keysFile, ($keysContent === '' ? '' : "\n").$key, FILE_APPEND);
 
             if ($forceSecret === null) {
                 foreach ($this->config->addKeyToInstances() as $instance) {
-                    $this->client->getRemote($instance . 'addKey.php?key=' . $key . '&forceSecret=' . $this->config->addKeyForceSecret());
+                    $this->client->getRemote($instance.'addKey.php?key='.$key.'&forceSecret='.$this->config->addKeyForceSecret());
                 }
             }
 
@@ -82,17 +82,17 @@ class ApiKeyService
 
         $keysFile = $this->config->keysFile();
         if (! is_file($keysFile)) {
-            throw new ApiException($keysFile . ' does not exist!');
+            throw new ApiException($keysFile.' does not exist!');
         }
 
         $keys = explode("\n", (string) file_get_contents($keysFile));
         $keysCount = count($keys);
-        $url = 'https://www.googleapis.com/youtube/v3/' . ltrim($apiPath, '/') . (str_contains($apiPath, '?') ? '&' : '?') . 'key=';
+        $url = 'https://www.googleapis.com/youtube/v3/'.ltrim($apiPath, '/').(str_contains($apiPath, '?') ? '&' : '?').'key=';
         $options = ['http' => ['ignore_errors' => true]];
 
         for ($keysIndex = 0; $keysIndex < $keysCount; $keysIndex++) {
             $key = $keys[$keysIndex];
-            $response = $this->client->getRemote($url . $key, $options, false);
+            $response = $this->client->getRemote($url.$key, $options, false);
             $response = str_replace($key, '!Please contact Benjamin Loison to tell him how you did that!', $response);
             $json = json_decode($response, true);
 
