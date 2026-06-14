@@ -133,7 +133,7 @@ final class WatchPage
         ];
     }
 
-  /**
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function metadataRows(?array $json): array
@@ -195,9 +195,6 @@ final class WatchPage
         ];
     }
 
-    /**
-     * @return string|null
-     */
     public static function location(?array $json): ?string
     {
         $primary = self::primaryRenderer($json);
