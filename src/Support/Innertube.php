@@ -130,7 +130,7 @@ class Innertube
             'channelName' => $common['authorText']['runs'][0]['text'],
             'channelHandle' => substr($common['authorEndpoint']['browseEndpoint']['canonicalBaseUrl'], 1),
             'channelThumbnails' => array_map(function ($thumbnail) {
-                $thumbnail['url'] = 'https:' . $thumbnail['url'];
+                $thumbnail['url'] = 'https:'.$thumbnail['url'];
 
                 return $thumbnail;
             }, $common['authorThumbnail']['thumbnails']),

@@ -98,7 +98,7 @@ class YouTubeOperationalController extends Controller
             $this->assertInstanceKey($request);
             $apiPath = $path;
             if ($request->getQueryString()) {
-                $apiPath .= '?' . $request->getQueryString();
+                $apiPath .= '?'.$request->getQueryString();
             }
             $result = $this->service->noKey($apiPath, $request->has('monitoring'));
         } catch (ApiException $e) {

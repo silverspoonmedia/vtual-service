@@ -3,7 +3,6 @@
 namespace Silverspoonmedia\VtualService\Endpoints;
 
 use Silverspoonmedia\VtualService\Exceptions\ApiException;
-use Silverspoonmedia\VtualService\Support\Innertube;
 use Silverspoonmedia\VtualService\Support\Parsers;
 use Silverspoonmedia\VtualService\Support\Validators;
 

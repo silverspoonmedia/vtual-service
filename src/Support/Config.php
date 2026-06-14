@@ -188,7 +188,7 @@ class Config
     public static function parseProxyUrl(string $url, ?string $fallbackType = null): array
     {
         if (! str_contains($url, '://')) {
-            $url = ($fallbackType && $fallbackType !== OutboundProxy::TYPE_HTTP ? $fallbackType : 'http') . '://' . $url;
+            $url = ($fallbackType && $fallbackType !== OutboundProxy::TYPE_HTTP ? $fallbackType : 'http').'://'.$url;
         }
 
         $parts = parse_url($url);

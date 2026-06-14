@@ -4,6 +4,7 @@ namespace Silverspoonmedia\VtualService\Endpoints;
 
 use Silverspoonmedia\VtualService\Exceptions\ApiException;
 use Silverspoonmedia\VtualService\Support\Innertube;
+use Silverspoonmedia\VtualService\Support\Json;
 use Silverspoonmedia\VtualService\Support\Parsers;
 use Silverspoonmedia\VtualService\Support\Protobuf;
 use Silverspoonmedia\VtualService\Support\Validators;
@@ -64,8 +65,8 @@ class SearchEndpoint extends Endpoint
     }
 
     /**
-     * @param array<string, mixed> $params
-     * @param array<string, bool> $options
+     * @param  array<string, mixed>  $params
+     * @param  array<string, bool>  $options
      * @return array<string, mixed>
      */
     protected function getApi(array $params, array $options, string $order, string $continuationToken): array
@@ -78,7 +79,7 @@ class SearchEndpoint extends Endpoint
             $id = (string) $params['hashtag'];
             $json = $continuationTokenProvided
                 ? $this->client->getContinuationJson($continuationToken)
-                : $this->client->getJsonFromHtml('https://www.youtube.com/hashtag/' . urlencode($id));
+                : $this->client->getJsonFromHtml('https://www.youtube.com/hashtag/'.urlencode($id));
             $items = $continuationTokenProvided
                 ? Innertube::continuationItems($json ?? [])
                 : Innertube::tabs($json ?? [])[0]['tabRenderer']['content']['richGridRenderer']['contents'];
@@ -98,7 +99,7 @@ class SearchEndpoint extends Endpoint
             if ($continuationTokenProvided) {
                 $rawData['continuation'] = $continuationToken;
             }
-            $json = $this->client->postInnertube('https://www.youtube.com/youtubei/v1/search?key=' . $this->config->uiKey(), $rawData);
+            $json = $this->client->postInnertube('https://www.youtube.com/youtubei/v1/search?key='.$this->config->uiKey(), $rawData);
             if (($params['type'] ?? null) === 'short') {
                 $items = $json['onResponseReceivedCommands'][0]['reloadContinuationItemsCommand']['continuationItems'][0]['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'];
             } else {
@@ -116,7 +117,7 @@ class SearchEndpoint extends Endpoint
             if ($continuationTokenProvided) {
                 $rawData['continuation'] = $continuationToken;
             }
-            $json = $this->client->postInnertube('https://www.youtube.com/youtubei/v1/browse?key=' . $this->config->uiKey(), $rawData);
+            $json = $this->client->postInnertube('https://www.youtube.com/youtubei/v1/browse?key='.$this->config->uiKey(), $rawData);
             $items = $continuationTokenProvided
                 ? Innertube::continuationItems($json ?? [])
                 : Innertube::tabs($json ?? [])[1]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['gridRenderer']['items'];
@@ -139,7 +140,7 @@ class SearchEndpoint extends Endpoint
                 $path = 'gridVideoRenderer';
             }
 
-            $gridVideoRenderer = \Silverspoonmedia\VtualService\Support\Json::value($item, $path);
+            $gridVideoRenderer = Json::value($item, $path);
             $answerItem = ['kind' => 'youtube#searchResult', 'etag' => 'NotImplemented'];
 
             if ($options['id']) {

@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Silverspoonmedia\VtualService\Exceptions\ApiException;
+use Silverspoonmedia\VtualService\Exceptions\TorEgressException;
+use Silverspoonmedia\VtualService\Support\Config;
+use Silverspoonmedia\VtualService\VtualService;
 
 it('registers youtube operational routes when enabled', function () {
     $routes = collect(Route::getRoutes())->map(fn ($route) => $route->uri())->all();
@@ -12,13 +15,13 @@ it('registers youtube operational routes when enabled', function () {
 });
 
 it('resolves VtualService from the container', function () {
-    expect(app(\Silverspoonmedia\VtualService\VtualService::class))
-        ->toBeInstanceOf(\Silverspoonmedia\VtualService\VtualService::class);
+    expect(app(VtualService::class))
+        ->toBeInstanceOf(VtualService::class);
 });
 
 it('rejects requests when instance key is required', function () {
     config()->set('vtual-service.restrict_usage_to_key', 'secret-key');
-    app()->forgetInstance(\Silverspoonmedia\VtualService\Support\Config::class);
+    app()->forgetInstance(Config::class);
 
     $response = $this->get('/youtube/videos?part=snippet&id=dQw4w9WgXcQ');
 
@@ -38,7 +41,7 @@ it('formats api exceptions like upstream dieWithJsonMessage', function () {
 });
 
 it('formats tor egress exceptions as json api errors', function () {
-    $exception = new \Silverspoonmedia\VtualService\Exceptions\TorEgressException('Tor egress check failed');
+    $exception = new TorEgressException('Tor egress check failed');
 
     expect($exception->apiCode())->toBe(503);
     expect($exception->toArray()['error']['code'])->toBe(503);
